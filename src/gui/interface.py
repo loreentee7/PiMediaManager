@@ -1,15 +1,16 @@
 import tkinter as tk
 from tkinter import ttk, Label, Frame, Scrollbar
 from tkinter import PhotoImage
+from tkinter import font  # Importar para personalizar la fuente
 import os
 import shutil
-from PIL import Image, ImageTk # type: ignore
+from PIL import Image, ImageTk
 
 class Interface:
     def __init__(self, master):
         self.master = master
         self.master.title("PiMediaManager")
-        self.master.geometry("900x700")
+        self.master.geometry("900x750")  # Incrementar la altura de 700 a 750
         self.master.configure(bg="#f0f0f0")  # Fondo gris claro
         self.selected_file = None
         self.selected_frame = None
@@ -70,8 +71,23 @@ class Interface:
         self.canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
         self.canvas.configure(yscrollcommand=self.scrollbar.set)
 
-        self.canvas.pack(side="left", fill="both", expand=True, padx=10, pady=10)
+        self.canvas.pack(side="top", fill="both", expand=True, padx=10, pady=10)
         self.scrollbar.pack(side="right", fill="y")
+
+        # Footer container para el texto
+        footer_frame = Frame(self.master, bg="#f0f0f0")
+        footer_frame.pack(side="bottom", fill="x")  # Colocar al final de la ventana
+
+        # Texto en la parte inferior
+        pixel_font = font.Font(family="Courier", size=10, weight="bold")  # Fuente estilo pixel
+        footer_label = Label(
+            footer_frame,
+            text="Designed by Lorente ❤️",
+            font=pixel_font,
+            bg="#f0f0f0",  # Fondo gris claro
+            fg="#333333"   # Color del texto
+        )
+        footer_label.pack(pady=5)  # Añadir un pequeño margen
 
     def explore_folders(self):
         # Método para explorar los archivos en la carpeta de almacenamiento
@@ -117,7 +133,7 @@ class Interface:
             self.load_video(file_path)
 
     def load_image(self, file_path):
-        from PIL import Image, ImageTk # type: ignore
+        from PIL import Image, ImageTk 
 
         # Cargar la imagen
         img = Image.open(file_path)
@@ -128,7 +144,7 @@ class Interface:
         self.canvas.create_image(0, 0, anchor=tk.NW, image=self.img_tk)
 
     def load_video(self, file_path):
-        import cv2 # type: ignore
+        import cv2 
 
         def play_video():
             cap = cv2.VideoCapture(file_path)
@@ -229,8 +245,8 @@ class Interface:
         print(f"Archivo seleccionado: {self.selected_file}")
 
     def open_file(self, file_path):
-        from PIL import Image # type: ignore
-        import cv2 # type: ignore
+        from PIL import Image 
+        import cv2 
 
         try:
             if file_path.endswith((".jpg", ".png")):
