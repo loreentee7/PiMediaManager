@@ -1,0 +1,3 @@
+# settings.py
+
+# Este archivo es intencionalmente dejado en blanco.

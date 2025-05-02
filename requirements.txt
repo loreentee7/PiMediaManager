@@ -1,0 +1,6 @@
+Pillow
+opencv-python
+tkinter
+Flask
+go-mtpfs
+PySimpleGUI
