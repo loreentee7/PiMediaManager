@@ -32,8 +32,11 @@ class Interface:
         header_label = Label(header_frame, text="PiMediaManager", font=("Arial", 24, "bold"), bg="#4CAF50", fg="white")
         header_label.pack(pady=10)
 
+        header_label = Label(header_frame, text="Alejandro Avila", font=("Arial", 20, "bold"), bg="#4CAF50", fg="white")
+        header_label.pack(pady=10)
+
         # Botones de acción
-        self.button_frame = Frame(self.master, bg="#f0f0f0")
+        self.button_frame = Frame(self.master, bg="#f0f0f0")    
         self.button_frame.pack(pady=10)
 
         style = ttk.Style()
