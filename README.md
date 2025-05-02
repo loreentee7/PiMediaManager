@@ -2,6 +2,8 @@
 
 **PiMediaManager** es una aplicación ligera escrita en Python diseñada para la Raspberry Pi Zero 2. Su propósito es actuar como un gestor de archivos multimedia (fotos y videos), permitiendo mover, copiar, cortar, pegar, previsualizar y transferir contenido entre la Raspberry y otros dispositivos como teléfonos móviles.
 
+Esta desarrollado para un amigo el cual me pidio un gestor de archivos y fotos...
+
 ---
 
 ## 🚀 Funcionalidades
