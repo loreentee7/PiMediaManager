@@ -3,7 +3,7 @@ from tkinter import ttk, Label, Frame, Scrollbar
 from tkinter import PhotoImage
 import os
 import shutil
-from PIL import Image, ImageTk
+from PIL import Image, ImageTk # type: ignore
 
 class Interface:
     def __init__(self, master):
@@ -114,7 +114,7 @@ class Interface:
             self.load_video(file_path)
 
     def load_image(self, file_path):
-        from PIL import Image, ImageTk
+        from PIL import Image, ImageTk # type: ignore
 
         # Cargar la imagen
         img = Image.open(file_path)
@@ -125,7 +125,7 @@ class Interface:
         self.canvas.create_image(0, 0, anchor=tk.NW, image=self.img_tk)
 
     def load_video(self, file_path):
-        import cv2
+        import cv2 # type: ignore
 
         def play_video():
             cap = cv2.VideoCapture(file_path)
@@ -226,8 +226,8 @@ class Interface:
         print(f"Archivo seleccionado: {self.selected_file}")
 
     def open_file(self, file_path):
-        from PIL import Image
-        import cv2
+        from PIL import Image # type: ignore
+        import cv2 # type: ignore
 
         try:
             if file_path.endswith((".jpg", ".png")):
@@ -298,6 +298,25 @@ class Interface:
             print("No se ha seleccionado ningún archivo.")
             return
         self.open_file(self.selected_file)
+
+    def import_files(self):
+        # Ruta donde se montará el teléfono
+        phone_path = "/media/phone"
+
+        # Verificar si el directorio existe
+        if not os.path.exists(phone_path):
+            print("El teléfono no está montado.")
+            return
+
+        # Copiar archivos desde el teléfono a la carpeta de la aplicación
+        for file in os.listdir(phone_path):
+            src = os.path.join(phone_path, file)
+            dest = os.path.join(self.storage_path, file)
+            shutil.copy(src, dest)
+            print(f"Archivo importado: {file}")
+
+        # Recargar los archivos en la interfaz
+        self.load_files()
 
 if __name__ == "__main__":
     root = tk.Tk()

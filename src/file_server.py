@@ -1,5 +1,5 @@
 # filepath: c:\Users\elorente\Documents\CodeApi\PiMediaManager\src\file_server.py
-from flask import Flask, request, redirect, url_for
+from flask import Flask, request, redirect, url_for # type: ignore
 import os
 
 app = Flask(__name__)
