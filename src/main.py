@@ -2,12 +2,26 @@
 
 import tkinter as tk
 from gui.interface import Interface
+from importer import Importer  # Asegúrate de que importer.py esté en el mismo nivel o en el path correcto
 
-def main():
+def open_importer():
+    """Abre el importador de fotos."""
     root = tk.Tk()
-    root.title("PiMediaManager")
+    app = Importer(root)
+    root.mainloop()
+
+def open_interface():
+    """Abre la interfaz principal."""
+    root = tk.Tk()
     app = Interface(root)
     root.mainloop()
+
+def main():
+    open_importer()  # Primero abre el importador
+    open_interface()  # Luego abre la interfaz principal
+
+if __name__ == "__main__":
+    main()
 
 if __name__ == "__main__":
     main()
