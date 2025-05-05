@@ -15,6 +15,7 @@ class Interface:
         self.master.configure(bg="#f0f0f0")  # Fondo gris claro
         self.selected_file = None
         self.selected_frame = None
+        self.selected_files = []
 
         # Crear carpeta de almacenamiento si no existe
         self.storage_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../media_storage"))
@@ -44,6 +45,9 @@ class Interface:
         style = ttk.Style()
         style.configure("TButton", font=("Arial", 12), padding=5)
 
+        self.create_folder_button = ttk.Button(self.button_frame, text="Crear Carpeta", command=self.create_folder)
+        self.create_folder_button.grid(row=0, column=6, padx=5)
+
         self.cut_button = ttk.Button(self.button_frame, text="Cortar", command=self.cut_file)
         self.cut_button.grid(row=0, column=0, padx=5)
 
@@ -67,15 +71,18 @@ class Interface:
         self.scrollbar = Scrollbar(self.master, orient="vertical", command=self.canvas.yview)
         self.scrollable_frame = Frame(self.canvas, bg="white")
 
+        # Asociar el evento de configuración del canvas
         self.scrollable_frame.bind(
             "<Configure>",
             lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all"))
         )
 
+        # Crear ventana dentro del canvas
         self.canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
         self.canvas.configure(yscrollcommand=self.scrollbar.set)
 
-        self.canvas.pack(side="top", fill="both", expand=True, padx=10, pady=10)
+        # Empaquetar el canvas y el scrollbar
+        self.canvas.pack(side="left", fill="both", expand=True, padx=10, pady=10)
         self.scrollbar.pack(side="right", fill="y")
 
         # Footer container para el texto
@@ -181,48 +188,67 @@ class Interface:
         # Lista para almacenar referencias a las imágenes
         self.image_references = []
 
-        # Listar archivos en la carpeta de almacenamiento
-        files = os.listdir(self.storage_path)
-        if not files:
-            Label(self.scrollable_frame, text="No hay archivos para mostrar.", bg="white", font=("Arial", 14)).grid(row=0, column=0, pady=20)
+        # Mostrar botón para volver a la carpeta anterior si no estamos en la raíz
+        if self.storage_path != os.path.abspath(os.path.join(os.path.dirname(__file__), "../media_storage")):
+            back_button = Frame(self.scrollable_frame, bg="#e0e0e0", padx=2, pady=2, relief="solid", bd=1)
+            back_button.grid(row=0, column=0, padx=5, pady=5, sticky="ew")
+            back_label = Label(back_button, text="🔙 Volver", font=("Arial", 8, "bold"), bg="#e0e0e0")
+            back_label.pack()
+            # Asociar el evento de clic al marco completo
+            back_button.bind("<Button-1>", lambda e: self.go_back())
+
+        # Listar carpetas y archivos en la carpeta actual
+        items = os.listdir(self.storage_path)
+        if not items:
+            Label(self.scrollable_frame, text="No hay archivos o carpetas para mostrar.", bg="white", font=("Arial", 14)).grid(row=1, column=0, pady=20)
             return
 
-        # Mostrar miniaturas en una cuadrícula
-        row, col = 0, 0
-        for file in files:
-            file_path = os.path.join(self.storage_path, file)
+        # Mostrar carpetas y archivos en una cuadrícula
+        row, col = 1, 0
+        for item in items:
+            item_path = os.path.join(self.storage_path, item)
 
-            # Crear un marco para cada archivo
-            file_frame = Frame(self.scrollable_frame, bg="#f9f9f9", padx=5, pady=5, relief="solid", bd=1)
-            file_frame.grid(row=row, column=col, padx=10, pady=10)
+            # Crear un marco para cada archivo o carpeta
+            item_frame = Frame(self.scrollable_frame, bg="#f9f9f9", padx=5, pady=5, relief="solid", bd=1)
+            item_frame.grid(row=row, column=col, padx=10, pady=10)
 
-            # Mostrar miniatura
-            if file_path.endswith((".jpg",".JPG", ".PNG", ".png")):
+            # Hacer que todo el marco sea interactivo
+            if os.path.isdir(item_path):
+                folder_icon = Label(item_frame, text="📁", font=("Arial", 24), bg="#f9f9f9")
+                folder_icon.pack()
+                # Mostrar el nombre de la carpeta
+                item_label = Label(item_frame, text=item, bg="#f9f9f9", wraplength=100, font=("Arial", 10))
+                item_label.pack()
+            elif item_path.endswith((".jpg", ".png", ".JPG", ".PNG")):
                 try:
-                    img = Image.open(file_path)
+                    img = Image.open(item_path)
                     img.thumbnail((100, 100))  # Crear miniatura
                     img_tk = ImageTk.PhotoImage(img)
 
-                    img_label = Label(file_frame, image=img_tk, bg="#f9f9f9")
+                    img_label = Label(item_frame, image=img_tk, bg="#f9f9f9")
                     img_label.image = img_tk  # Guardar referencia para evitar que se recolecte
                     img_label.pack()
 
                     # Guardar la referencia en la lista
                     self.image_references.append(img_tk)
                 except Exception as e:
-                    print(f"Error al cargar la miniatura de {file_path}: {e}")
-            elif file_path.endswith((".mp4", ".avi")):
-                # Mostrar un icono genérico para videos
-                video_icon = Label(file_frame, text="🎥", font=("Arial", 24), bg="#f9f9f9")
+                    print(f"Error al cargar la miniatura de {item_path}: {e}")
+            elif item_path.endswith((".mp4", ".avi")):
+                video_icon = Label(item_frame, text="🎥", font=("Arial", 24), bg="#f9f9f9")
                 video_icon.pack()
 
             # Mostrar nombre del archivo
-            file_label = Label(file_frame, text=file, bg="#f9f9f9", wraplength=100, font=("Arial", 10))
-            file_label.pack()
+            if not os.path.isdir(item_path):
+                item_label = Label(item_frame, text=item, bg="#f9f9f9", wraplength=100, font=("Arial", 10))
+                item_label.pack()
 
-            # Hacer clic para seleccionar el archivo
-            for widget in file_frame.winfo_children():
-                widget.bind("<Button-1>", lambda e, path=file_path, frame=file_frame: self.select_file(path, frame))
+            # Asociar el evento de selección al marco completo y a sus hijos
+            def bind_selection(widget, path=item_path, frame=item_frame):
+                widget.bind("<Button-1>", lambda e: self.select_file(path, frame))
+
+            bind_selection(item_frame)  # Asociar al marco
+            for child in item_frame.winfo_children():  # Asociar a todos los hijos del marco
+                bind_selection(child)
 
             # Cambiar de columna y fila
             col += 1
@@ -235,18 +261,23 @@ class Interface:
             self.select_file(file_path)
         return callback
 
+    def create_enter_folder_callback(self, folder_path):
+        def callback(event):
+            self.enter_folder(folder_path)
+        return callback
+
     def select_file(self, file_path, file_frame):
-        # Restablecer el color del marco previamente seleccionado
-        if self.selected_frame and self.selected_frame.winfo_exists():
-            self.selected_frame.config(bg="#f9f9f9")
+        # Si el archivo ya está seleccionado, deseleccionarlo
+        if file_path in self.selected_files:
+            self.selected_files.remove(file_path)
+            file_frame.config(bg="#f9f9f9")  # Restaurar el color original
+        else:
+            # Si no está seleccionado, agregarlo a la lista
+            self.selected_files.append(file_path)
+            file_frame.config(bg="#cce5ff")  # Resaltar en azul claro
 
-        # Actualizar el archivo seleccionado y resaltar el marco
-        self.selected_file = file_path
-        self.selected_frame = file_frame
-        self.selected_frame.config(bg="#cce5ff")  # Resaltar en azul claro
-
-        # Imprimir el archivo seleccionado
-        print(f"Archivo seleccionado: {self.selected_file}")
+        # Imprimir la lista de archivos seleccionados
+        print(f"Archivos seleccionados: {self.selected_files}")
 
     def open_file(self, file_path):
         from PIL import Image 
@@ -306,21 +337,41 @@ class Interface:
         self.load_files()
 
     def delete_file(self):
-        # Eliminar archivo seleccionado
-        if not self.selected_file:
-            print("No se ha seleccionado ningún archivo.")
+        # Verificar si hay archivos o carpetas seleccionados
+        if not self.selected_files:
+            print("No se han seleccionado archivos o carpetas.")
             return
-        os.remove(self.selected_file)
-        print(f"Archivo eliminado: {self.selected_file}")
-        self.selected_file = None
-        self.selected_frame = None  # Restablecer el marco seleccionado
-        self.load_files()
+
+        try:
+            for file_path in self.selected_files:
+                if os.path.isdir(file_path):
+                    # Eliminar carpeta y su contenido
+                    shutil.rmtree(file_path)
+                    print(f"Carpeta eliminada: {file_path}")
+                else:
+                    # Eliminar archivo
+                    os.remove(file_path)
+                    print(f"Archivo eliminado: {file_path}")
+            
+            # Restablecer selección
+            self.selected_files = []
+            self.load_files()  # Recargar la interfaz
+        except Exception as e:
+            print(f"Error al eliminar los archivos o carpetas: {e}")
 
     def open_selected_file(self):
-        if not self.selected_file:
-            print("No se ha seleccionado ningún archivo.")
+        if not self.selected_files:
+            print("No se ha seleccionado ningún archivo o carpeta.")
             return
-        self.open_file(self.selected_file)
+
+        # Abrir el primer elemento seleccionado
+        selected_path = self.selected_files[0]
+        if os.path.isdir(selected_path):
+            # Si es una carpeta, entrar en ella
+            self.enter_folder(selected_path)
+        else:
+            # Si es un archivo, abrirlo
+            self.open_file(selected_path)
 
     def import_files(self):
         from tkinter import filedialog
@@ -347,6 +398,34 @@ class Interface:
         # Recargar los archivos en la interfaz
         self.load_files()
         print("Importación completada.")
+
+    def create_folder(self):
+        from tkinter.simpledialog import askstring
+
+        # Pedir al usuario el nombre de la carpeta
+        folder_name = askstring("Crear Carpeta", "Introduce el nombre de la nueva carpeta:")
+        if not folder_name:
+            print("No se ingresó ningún nombre para la carpeta.")
+            return
+
+        # Crear la carpeta en la ubicación actual
+        folder_path = os.path.join(self.storage_path, folder_name)
+        try:
+            os.makedirs(folder_path)
+            print(f"Carpeta creada: {folder_path}")
+            self.load_files()  # Recargar la interfaz
+        except Exception as e:
+            print(f"Error al crear la carpeta: {e}")
+
+    def enter_folder(self, folder_path):
+        # Cambiar la ruta actual a la carpeta seleccionada
+        self.storage_path = folder_path
+        self.load_files()
+
+    def go_back(self):
+        # Volver a la carpeta anterior
+        self.storage_path = os.path.dirname(self.storage_path)
+        self.load_files()
 
 if __name__ == "__main__":
     root = tk.Tk()
