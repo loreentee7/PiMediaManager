@@ -5,6 +5,7 @@ from tkinter import font  # Importar para personalizar la fuente
 import os
 import shutil
 from PIL import Image, ImageTk
+import cv2
 
 class Interface:
     def __init__(self, master):
@@ -57,6 +58,9 @@ class Interface:
 
         self.open_button = ttk.Button(self.button_frame, text="Abrir", command=self.open_selected_file)
         self.open_button.grid(row=0, column=4, padx=5)
+
+        self.import_button = ttk.Button(self.button_frame, text="Importar", command=self.import_files)
+        self.import_button.grid(row=0, column=5, padx=5)
 
         # Contenedor desplazable para los archivos
         self.canvas = tk.Canvas(self.master, bg="white", width=850, height=500, highlightthickness=0)
@@ -127,7 +131,7 @@ class Interface:
         file_path = os.path.join(self.storage_path, files[0])
 
         # Mostrar imagen o video según el tipo de archivo
-        if file_path.endswith((".jpg", ".png")):
+        if file_path.endswith((".jpg", ".png", ".JPG", ".PNG")):
             self.load_image(file_path)
         elif file_path.endswith((".mp4", ".avi")):
             self.load_video(file_path)
@@ -193,7 +197,7 @@ class Interface:
             file_frame.grid(row=row, column=col, padx=10, pady=10)
 
             # Mostrar miniatura
-            if file_path.endswith((".jpg", ".png")):
+            if file_path.endswith((".jpg",".JPG", ".PNG", ".png")):
                 try:
                     img = Image.open(file_path)
                     img.thumbnail((100, 100))  # Crear miniatura
@@ -249,7 +253,7 @@ class Interface:
         import cv2 
 
         try:
-            if file_path.endswith((".jpg", ".png")):
+            if file_path.endswith((".jpg", ".JPG",".png", ".PNG")):
                 # Abrir imagen
                 img = Image.open(file_path)
                 img.show()
@@ -319,23 +323,30 @@ class Interface:
         self.open_file(self.selected_file)
 
     def import_files(self):
-        # Ruta donde se montará el teléfono
-        phone_path = "/media/phone"
+        from tkinter import filedialog
 
-        # Verificar si el directorio existe
-        if not os.path.exists(phone_path):
-            print("El teléfono no está montado.")
+        # Abrir un cuadro de diálogo para seleccionar múltiples archivos
+        file_paths = filedialog.askopenfilenames(
+            title="Selecciona las fotos o videos",
+            filetypes=[("Imágenes y Videos", "*.jpg *.png *.mp4 *.avi"), ("Todos los archivos", "*.*")]
+        )
+
+        if not file_paths:
+            print("No se seleccionaron archivos.")
             return
 
-        # Copiar archivos desde el teléfono a la carpeta de la aplicación
-        for file in os.listdir(phone_path):
-            src = os.path.join(phone_path, file)
-            dest = os.path.join(self.storage_path, file)
-            shutil.copy(src, dest)
-            print(f"Archivo importado: {file}")
+        # Copiar los archivos seleccionados al directorio de media_storage
+        for file_path in file_paths:
+            dest = os.path.join(self.storage_path, os.path.basename(file_path))
+
+            # Verificar si es un archivo válido (por ejemplo, imágenes o videos)
+            if os.path.isfile(file_path) and file_path.lower().endswith((".jpg", ".JPG",".png", ".PNG", ".mp4", ".avi")):
+                shutil.copy(file_path, dest)
+                print(f"Archivo importado: {os.path.basename(file_path)}")
 
         # Recargar los archivos en la interfaz
         self.load_files()
+        print("Importación completada.")
 
 if __name__ == "__main__":
     root = tk.Tk()
