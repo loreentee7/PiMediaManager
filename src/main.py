@@ -2,7 +2,6 @@
 
 import tkinter as tk
 from gui.interface import Interface
-from importer import Importer  # Asegúrate de que importer.py esté en el mismo nivel o en el path correcto
 
 def open_importer():
     """Abre el importador de fotos."""
@@ -17,7 +16,6 @@ def open_interface():
     root.mainloop()
 
 def main():
-    open_importer()  # Primero abre el importador
     open_interface()  # Luego abre la interfaz principal
 
 if __name__ == "__main__":
